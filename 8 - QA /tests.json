@@ -1,0 +1,1775 @@
+{
+  "info": {
+    "_postman_id": "a912c0d6-2eee-4cda-947a-eba99c7a0316",
+    "name": "API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "52209162",
+    "_collection_link": "https://go.postman.co/collection/52209162-a912c0d6-2eee-4cda-947a-eba99c7a0316?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "E2E_AUTH",
+      "item": [
+        {
+          "name": "Отправить код для входа в приложение",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"expireAt is an array\", () => {",
+                  "    let json = pm.response.json();",
+                  "    pm.expect(json.expireAt).to.be.an('array');",
+                  "});",
+                  "pm.collectionVariables.set(\"phone\", \"74444444444\")"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"phone\": {{phone}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/phone/send-code",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "phone",
+                "send-code"
+              ]
+            },
+            "description": "- Номер телефона без \"+\"\n    \n- Для тестового окружения создается код подтверждения \"111111\""
+          },
+          "response": []
+        },
+        {
+          "name": "Подтвердить код с телефона",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Verify success\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test(\"Token should be consistent\", () => {",
+                  "    const payload = JSON.parse(atob(json.token.split('.')[1]));",
+                  "    pm.expect(payload.sub).to.an('string');",
+                  "})",
+                  "",
+                  "pm.collectionVariables.set(\"token\", json.token);",
+                  "const payload = JSON.parse(atob(json.token.split('.')[1]));",
+                  "pm.collectionVariables.set(\"userId\", payload.sub);",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "packages": {},
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"phone\": {{phone}},\n    \"code\": \"111111\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/phone/verify-code",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "phone",
+                "verify-code"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "E2E_PERSONAL_INFO",
+      "item": [
+        {
+          "name": "Изменить информацию о пользователе",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code matches\", () => {",
+                  "    pm.expect(pm.response.code).to.eql(200)",
+                  "});",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstName\": \"Marina\",\n    \"lastName\": \"Novichkova\",\n    \"phone\": {{phone}},\n    \"email\": \"m.troshchiy@test.ru\",\n    \"patronymic\": \"Sergeevna\",\n    \"type\": \"individual\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/personal-info/{{userId}}/change",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "personal-info",
+                "{{userId}}",
+                "change"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Получить информацию о пользователе",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code matches\", () => pm.response.to.have.status(200));",
+                  "",
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test(\"Response body is valid\", () => {",
+                  "    pm.expect(json.userId).to.eq(Number(pm.collectionVariables.get(\"userId\")));",
+                  "    pm.expect(json.firstName).to.eql(\"Marina\");",
+                  "    pm.expect(json.lastName).to.eql(\"Novichkova\");",
+                  "    pm.expect(json.patronymic).to.eql(\"Sergeevna\");",
+                  "    pm.expect(json.email).to.eql(\"m.troshchiy@test.ru\");",
+                  "    pm.expect(json.phone).to.eql(pm.collectionVariables.get(\"phone\"));",
+                  "    pm.expect(json.type).to.eql(\"individual\");",
+                  "})",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/personal-info/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "personal-info",
+                "{{userId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "E2E_TARIFF",
+      "item": [
+        {
+          "name": "Получить все доступные тарифы",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200))",
+                  "",
+                  "const tariffs = pm.response.json()",
+                  "",
+                  "pm.test(\"Response is an array\", () => {",
+                  "    pm.expect(tariffs).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test(\"Contains exactly 2 tariffs\", () => {",
+                  "    pm.expect(tariffs.length).to.eql(2);",
+                  "});",
+                  "",
+                  "const expected = {",
+                  "    \"Тариф 1\": {",
+                  "        features: [",
+                  "            {",
+                  "                name: \"Выплаты правообладателям\",",
+                  "                recurrent: false,",
+                  "                items: [",
+                  "                    { name: \"Оплачиваю сам\", approvalRequired: false, price: 0 },",
+                  "                    { name: \"Оплачиваю через ПУСК\", approvalRequired: true, price: 0 ",
+                  "                    }",
+                  "                ]",
+                  "            }",
+                  "        ]",
+                  "    },",
+                  "    \"Тариф 2\": {",
+                  "        features: [",
+                  "            {",
+                  "                name: \"Выплаты правообладателям\",",
+                  "                recurrent: true,",
+                  "                items: [",
+                  "                    { name: \"Оплачиваю сам\", approvalRequired: false, price: 0 },",
+                  "                    { name: \"Оплачиваю через ПУСК\", approvalRequired: true, price: 0 }",
+                  "                ]",
+                  "            },",
+                  "            {",
+                  "                name: \"Обновление контента\",",
+                  "                recurrent: true,",
+                  "                items: [",
+                  "                    { name: \"Нужно\", approvalRequired: false, price: 15000 },",
+                  "                    { name: \"Не нужно\", approvalRequired: false, price: 0 }",
+                  "                ]",
+                  "            },",
+                  "            {",
+                  "                name: \"Разработка концепции\",",
+                  "                recurrent: false,",
+                  "                items: [",
+                  "                    { name: \"Нужна\", approvalRequired: false, price: 50000 },",
+                  "                    { name: \"Не нужна\", approvalRequired: false, price: 0 }",
+                  "                ]",
+                  "            }",
+                  "        ]",
+                  "    }",
+                  "};",
+                  "",
+                  "tariffs.forEach(tariff => {",
+                  "    pm.test(`Check tariff ${tariff.name}`, () => {",
+                  "        pm.expect(expected[tariff.name]).to.not.be.undefined;",
+                  "",
+                  "        const expFeatures = expected[tariff.name].features;",
+                  "        pm.expect(tariff.features.length).to.eql(expFeatures.length);",
+                  "",
+                  "        tariff.features.forEach((feat, i) => {",
+                  "            const expFeat = expFeatures[i];",
+                  "            pm.expect(feat.name).to.eql(expFeat.name);",
+                  "            pm.expect(feat.recurrent).to.eql(expFeat.recurrent);",
+                  "            pm.expect(feat.items.length).to.eql(expFeat.items.length);",
+                  "",
+                  "            feat.items.forEach((item, j) => {",
+                  "                const expItem = expFeat.items[j];",
+                  "                pm.expect(item.name).to.eql(expItem.name);",
+                  "                pm.expect(item.approvalRequired).to.eql(expItem.approvalRequired);",
+                  "                pm.expect(item.price).to.eql(expItem.price);",
+                  "            });",
+                  "        });",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set(\"tariffId\", tariffs[0].id.toString())",
+                  "pm.collectionVariables.set(\"tariffItems\", JSON.stringify(tariffs[0].features[0].items.map(item => item.id)))",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tariff",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tariff"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Получить тариф по ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200))",
+                  "",
+                  "const tariff = pm.response.json()",
+                  "",
+                  "pm.test(\"Tariff name is correct\", () => pm.expect(tariff.name).to.eql(\"Тариф 1\"))",
+                  "pm.test(\"Tariff price is correct\", () => pm.expect(tariff.price).to.eql(7990))",
+                  "const features = [",
+                  "    {",
+                  "        id: 1,",
+                  "        name: \"Выплаты правообладателям\",",
+                  "        recurrent: false,",
+                  "        items: [",
+                  "            { id: 1, name: \"Оплачиваю сам\", approvalRequired: false, price: 0 },",
+                  "            { id: 2, name: \"Оплачиваю через ПУСК\", approvalRequired: true, price: 0}",
+                  "        ]",
+                  "    }",
+                  "]",
+                  "pm.test(\"Tariff features are correct\", () => {",
+                  "    pm.expect(tariff.features).to.deep.equal(features)",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tariff/{{tariffId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tariff",
+                "{{tariffId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "E2E_ORGANIZATION",
+      "item": [
+        {
+          "name": "Добавить ИП на пользователя",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"organizationId\")) {",
+                  "    pm.test(\"Status code is 200\", () => pm.response.to.have.status(200))",
+                  "} else {",
+                  "    pm.test(\"Status code is 400\", () => pm.response.to.have.status(400))",
+                  "    const json = pm.response.json();",
+                  "    pm.test(\"Valid error\", () => {",
+                  "        pm.expect(json.error.type).to.eql(\"ip-data-not-unique\")",
+                  "        pm.expect(json.error.reason).to.include(\"Couldn't add more than one legal data to\")",
+                  "    })",
+                  "}",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyName\": \"ООО Галера\",\n  \"fio\": \"Трощий Марина Сергеевна\",\n  \"inn\": \"1234567890\",\n  \"kpp\": \"0987654321\",\n  \"address\": \"г. Москва, ул. Примерная, д. 1\",\n  \"ogrn\": \"1020304050607\",\n  \"email\": \"ivanov@example.com\",\n  \"accounts\": [\n    {\n      \"accountNumber\": \"40817810099910004321\",\n      \"bankBranchName\": \"АО Пример Банк, филиал Москва\",\n      \"bankBranchAddress\": \"г. Москва, ул. Банк, д. 2\",\n      \"bankBik\": \"044525225\",\n      \"correspondentNumber\": \"30101810400000000225\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/legal-info/{{userId}}/ip/add",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "legal-info",
+                "{{userId}}",
+                "ip",
+                "add"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Получить список организаций пользователя (ИП)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200))",
+                  "",
+                  "const organizations = pm.response.json()",
+                  "",
+                  "pm.test(\"Response is an array\", () => {",
+                  "    pm.expect(organizations).to.be.an('array');",
+                  "});",
+                  "",
+                  "var organization = organizations[0];",
+                  "pm.test(\"Organization has correct fields\", () => {",
+                  "    pm.expect(organization.companyName).to.eql(\"ООО Галера\")",
+                  "    pm.expect(organization.fio).to.eql(\"Трощий Марина Сергеевна\")",
+                  "    pm.expect(organization.inn).to.eql(\"1234567890\")",
+                  "    pm.expect(organization.accounts).to.be.an('array');",
+                  "    pm.expect(organization.accounts.length).to.eql(1);",
+                  "    pm.expect(organization.accounts[0].accountNumber).to.eql(\"40817810099910004321\")",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set(\"organizationId\", organization.id);",
+                  "pm.collectionVariables.set(\"accountId\", organization.accounts[0].id);",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/legal-info/{{userId}}/ip",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "legal-info",
+                "{{userId}}",
+                "ip"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "E2E_ESTABLISHMENT",
+      "item": [
+        {
+          "name": "Добавить новый объект",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "",
+                  "const json = pm.response.json()",
+                  "pm.test(\"Response should contain establishmentId\", () => {",
+                  "    pm.expect(json).to.have.property(\"establishmentId\");",
+                  "});",
+                  "pm.collectionVariables.set(\"establishmentId\", json.establishmentId);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Объект 1\",\n  \"address\": \"Тепличная, 28\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/establishment/{{userId}}/add",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "establishment",
+                "{{userId}}",
+                "add"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Добавить подписку (оплатить выбранный тариф)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200))",
+                  "",
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test(\"Response has valid status\", () => {",
+                  "    pm.expect(json.status).to.eql(\"done\");",
+                  "});",
+                  "pm.test(\"Response has valid message\", () => {",
+                  "    pm.expect(json.message).to.eql(\"success\");",
+                  "});",
+                  "",
+                  "pm.test(\"Response has valid subId\", () => {",
+                  "    pm.expect(json.subId).to.be.an('Number')",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set(\"subId\", json.subId);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"tariffInfo\": {\n        \"tariffId\": {{tariffId}},\n        \"itemIds\": {{tariffItems}}\n    },\n    \"organizationInfo\": {\n        \"organizationId\": {{organizationId}}\n    },\n    \"paymentInfo\": {\n        \"accountId\": {{accountId}}\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subscription/{{userId}}/{{establishmentId}}/add",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "subscription",
+                "{{userId}}",
+                "{{establishmentId}}",
+                "add"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Получить список всех объектов пользователя",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response is an array\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.be.an(\"array\");",
+                  "    pm.expect(json.length).to.be.greaterThan(0);",
+                  "});",
+                  "",
+                  "const response = pm.response.json();",
+                  "const obj = response[0];",
+                  "",
+                  "pm.test(\"Root object fields\", () => {",
+                  "    pm.expect(obj).to.have.property(\"id\").that.is.a(\"number\");",
+                  "    pm.expect(obj).to.have.property(\"id\", pm.collectionVariables.get(\"establishmentId\"));",
+                  "    pm.expect(obj).to.have.property(\"name\", \"Объект 1\");",
+                  "    pm.expect(obj).to.have.property(\"address\", \"Тепличная, 28\");",
+                  "    pm.expect(obj).to.have.property(\"area\").that.is.a(\"number\");",
+                  "});",
+                  "",
+                  "pm.test(\"Subscription info exists\", () => {",
+                  "    pm.expect(obj).to.have.property(\"subscriptionInfo\").that.is.an(\"object\");",
+                  "});",
+                  "",
+                  "const subscription = obj.subscriptionInfo;",
+                  "",
+                  "pm.test(\"Subscription basic fields\", () => {",
+                  "    pm.expect(subscription).to.have.property(\"id\", Number(pm.collectionVariables.get(\"subId\")));",
+                  "});",
+                  "",
+                  "pm.test(\"Tariff info validation\", () => {",
+                  "    const tariff = subscription.tariffInfo;",
+                  "",
+                  "    pm.expect(tariff).to.be.an(\"object\");",
+                  "    pm.expect(tariff).to.have.property(\"tariffId\", Number(pm.collectionVariables.get(\"tariffId\")));",
+                  "    pm.expect(tariff).to.have.property(\"price\", 7990.0);",
+                  "    pm.expect(tariff).to.have.property(\"tariffName\", \"Тариф 1\");",
+                  "",
+                  "    pm.expect(tariff).to.have.property(\"itemIds\").that.is.an(\"array\");",
+                  "});",
+                  "",
+                  "pm.test(\"Organization info validation\", () => {",
+                  "    const org = subscription.organizationInfo;",
+                  "",
+                  "    pm.expect(org).to.be.an(\"object\");",
+                  "    pm.expect(org).to.have.property(\"organizationId\", pm.collectionVariables.get(\"organizationId\"));",
+                  "    pm.expect(org).to.have.property(",
+                  "        \"organizationName\",",
+                  "        \"Трощий Марина Сергеевна\"",
+                  "    );",
+                  "});",
+                  "",
+                  "pm.test(\"Payment info validation\", () => {",
+                  "    const payment = subscription.paymentInfo;",
+                  "",
+                  "    pm.expect(payment).to.be.an(\"object\");",
+                  "    pm.expect(payment).to.have.property(\"accountId\", pm.collectionVariables.get(\"accountId\"));",
+                  "});",
+                  "",
+                  "pm.test(\"Playlists should be empty array\", () => {",
+                  "    pm.expect(subscription).to.have.property(\"playlists\").that.is.an(\"array\");",
+                  "    pm.expect(subscription.playlists).to.have.length(0);",
+                  "});",
+                  "",
+                  "pm.test(\"Player info is null\", () => {",
+                  "    pm.expect(obj).to.have.property(\"playerInfo\").that.is.null;",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/establishment/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "establishment",
+                "{{userId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Получить конкретный объект пользователя по ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "",
+                  "const obj = pm.response.json();",
+                  "",
+                  "pm.test(\"Root object fields\", () => {",
+                  "    pm.expect(obj).to.have.property(\"id\").that.is.a(\"number\");",
+                  "    pm.expect(obj).to.have.property(\"id\", pm.collectionVariables.get(\"establishmentId\"));",
+                  "    pm.expect(obj).to.have.property(\"name\", \"Объект 1\");",
+                  "    pm.expect(obj).to.have.property(\"address\", \"Тепличная, 28\");",
+                  "    pm.expect(obj).to.have.property(\"area\").that.is.a(\"number\");",
+                  "});",
+                  "",
+                  "pm.test(\"Subscription info exists\", () => {",
+                  "    pm.expect(obj).to.have.property(\"subscriptionInfo\").that.is.an(\"object\");",
+                  "});",
+                  "",
+                  "const subscription = obj.subscriptionInfo;",
+                  "",
+                  "pm.test(\"Subscription basic fields\", () => {",
+                  "    pm.expect(subscription).to.have.property(\"id\", Number(pm.collectionVariables.get(\"subId\")));",
+                  "});",
+                  "",
+                  "pm.test(\"Tariff info validation\", () => {",
+                  "    const tariff = subscription.tariffInfo;",
+                  "",
+                  "    pm.expect(tariff).to.be.an(\"object\");",
+                  "    pm.expect(tariff).to.have.property(\"tariffId\", Number(pm.collectionVariables.get(\"tariffId\")));",
+                  "    pm.expect(tariff).to.have.property(\"price\", 7990.0);",
+                  "    pm.expect(tariff).to.have.property(\"tariffName\", \"Тариф 1\");",
+                  "",
+                  "    pm.expect(tariff).to.have.property(\"itemIds\").that.is.an(\"array\");",
+                  "});",
+                  "",
+                  "pm.test(\"Organization info validation\", () => {",
+                  "    const org = subscription.organizationInfo;",
+                  "",
+                  "    pm.expect(org).to.be.an(\"object\");",
+                  "    pm.expect(org).to.have.property(\"organizationId\", pm.collectionVariables.get(\"organizationId\"));",
+                  "    pm.expect(org).to.have.property(",
+                  "        \"organizationName\",",
+                  "        \"Трощий Марина Сергеевна\"",
+                  "    );",
+                  "});",
+                  "",
+                  "pm.test(\"Payment info validation\", () => {",
+                  "    const payment = subscription.paymentInfo;",
+                  "",
+                  "    pm.expect(payment).to.be.an(\"object\");",
+                  "    pm.expect(payment).to.have.property(\"accountId\", pm.collectionVariables.get(\"accountId\"));",
+                  "});",
+                  "",
+                  "pm.test(\"Playlists should be empty array\", () => {",
+                  "    pm.expect(subscription).to.have.property(\"playlists\").that.is.an(\"array\");",
+                  "    pm.expect(subscription.playlists).to.have.length(0);",
+                  "});",
+                  "",
+                  "pm.test(\"Player info is null\", () => {",
+                  "    pm.expect(obj).to.have.property(\"playerInfo\").that.is.null;",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/establishment/{{userId}}/{{establishmentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "establishment",
+                "{{userId}}",
+                "{{establishmentId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "E2E_PLAYER",
+      "item": [
+        {
+          "name": "Добавить плеер на объект",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200))",
+                  "",
+                  "pm.test(\"Response body contains playerId\", () => {",
+                  "    pm.expect(pm.response.json()).to.have.property('playerId')",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set(\"playerId\", pm.response.json().playerId)"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Плеер 1\",\n    \"address\": \"Тепличная, 28\",\n    \"type\": \"boxPlayer\",\n    \"serialBoxNumber\": \"44ox932hcmc0dd0end03\",\n    \"establishmentId\": {{establishmentId}},\n    \"version\": \"1.60\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/music/player/add",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "music",
+                "player",
+                "add"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Получить плеер по ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response is an object\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.be.an(\"object\");",
+                  "});",
+                  "",
+                  "const obj = pm.response.json();",
+                  "",
+                  "pm.test(\"Required fields exist\", () => {",
+                  "    pm.expect(obj).to.have.property(\"id\").that.is.a(\"number\");",
+                  "    pm.expect(obj).to.have.property(\"name\").that.is.a(\"string\");",
+                  "    pm.expect(obj).to.have.property(\"address\").that.is.a(\"string\");",
+                  "    pm.expect(obj).to.have.property(\"serialNumber\").that.is.a(\"string\");",
+                  "});",
+                  "",
+                  "pm.test(\"IDs are non-negative\", () => {",
+                  "    pm.expect(obj.id).to.be.at.least(0);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/music/player/{{playerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "music",
+                "player",
+                "{{playerId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "E2E_PLAYLIST",
+      "item": [
+        {
+          "name": "Добавить новый плейлист",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200))",
+                  "",
+                  "pm.test(\"Response body contains playlistId\", () => {",
+                  "    pm.expect(pm.response.json()).to.have.property('playlistId')",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set(\"playlistId\", pm.response.json().playlistId)"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Playlist #1\",\n  \"description\": \"Top Playlist\",\n  \"year\": 2026,\n  \"status\": \"published\",\n  \"tariffs\": [{{tariffId}}]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/music/playlist/add",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "music",
+                "playlist",
+                "add"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Получить информацию об объекте после добавления плейлиста",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "",
+                  "const json = pm.response.json();",
+                  "const subscription = json.subscriptionInfo;",
+                  "",
+                  "pm.test(\"Playlists should contains one playlist\", () => {",
+                  "    pm.expect(subscription).to.have.property(\"playlists\").that.is.an(\"array\");",
+                  "    pm.expect(subscription.playlists).to.have.length(1);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/establishment/{{userId}}/{{establishmentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "establishment",
+                "{{userId}}",
+                "{{establishmentId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "E2E_SCHEDULE",
+      "item": [
+        {
+          "name": "Добавить расписание на объект",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200))",
+                  "",
+                  "pm.test(\"Response body contains scheduleId\", () => {",
+                  "    pm.expect(pm.response.json()).to.have.property('scheduleId')",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set(\"scheduleId\", pm.response.json().scheduleId)"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"weekdays\": [\"mon\", \"tue\", \"wed\", \"sun\", \"sat\"],\n  \"playlistId\": {{playlistId}},\n  \"playlistName\": \"Утренняя музыка\",\n  \"startTime\": \"09:00\",\n  \"endTime\": \"18:00\",\n  \"startWeekendTime\": \"10:00\",\n  \"endWeekendTime\": \"16:00\",\n  \"timezone\": {\n    \"city\": \"Moscow\",\n    \"utc\": \"+3\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/music/schedule/{{establishmentId}}/change",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "music",
+                "schedule",
+                "{{establishmentId}}",
+                "change"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Получить все расписания на объекте",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test(\"Response is an array\", () => {",
+                  "    pm.expect(json).to.be.an(\"array\");",
+                  "    pm.expect(json.length).to.be.greaterThan(0);",
+                  "});",
+                  "",
+                  "const schedule = json[0];",
+                  "",
+                  "pm.test(\"Schedule has required fields\", () => {",
+                  "    pm.expect(schedule).to.have.property(\"id\").that.is.a(\"number\");",
+                  "",
+                  "    pm.expect(schedule).to.have.property(\"weekdays\")",
+                  "        .that.is.an(\"array\")",
+                  "        .that.is.not.empty;",
+                  "",
+                  "    pm.expect(schedule).to.have.property(\"playlistId\").that.is.a(\"number\");",
+                  "    pm.expect(schedule).to.have.property(\"playlistName\").that.is.a(\"string\");",
+                  "",
+                  "    pm.expect(schedule).to.have.property(\"startTime\").that.is.a(\"string\");",
+                  "    pm.expect(schedule).to.have.property(\"endTime\").that.is.a(\"string\");",
+                  "    pm.expect(schedule).to.have.property(\"startWeekendTime\").that.is.a(\"string\");",
+                  "    pm.expect(schedule).to.have.property(\"endWeekendTime\").that.is.a(\"string\");",
+                  "",
+                  "    pm.expect(schedule).to.have.property(\"timezone\").that.is.an(\"object\");",
+                  "});",
+                  "",
+                  "pm.test(\"Weekdays contain valid values\", () => {",
+                  "    const allowed = [\"mon\", \"tue\", \"wed\", \"thu\", \"fri\", \"sat\", \"sun\"];",
+                  "    schedule.weekdays.forEach(day => {",
+                  "        pm.expect(allowed).to.include(day);",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test(\"Time fields are in HH:mm format\", () => {",
+                  "    const timeRegex = /^\\d{2}:\\d{2}$/;",
+                  "",
+                  "    pm.expect(schedule.startTime).to.match(timeRegex);",
+                  "    pm.expect(schedule.endTime).to.match(timeRegex);",
+                  "    pm.expect(schedule.startWeekendTime).to.match(timeRegex);",
+                  "    pm.expect(schedule.endWeekendTime).to.match(timeRegex);",
+                  "});",
+                  "",
+                  "pm.test(\"Timezone structure is valid\", () => {",
+                  "    pm.expect(schedule.timezone).to.have.property(\"city\").that.is.a(\"string\");",
+                  "    pm.expect(schedule.timezone).to.have.property(\"utc\").that.is.a(\"string\");",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/music/schedule/{{establishmentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "music",
+                "schedule",
+                "{{establishmentId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Удалить расписание на объекте",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Remove schedule: status 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/music/schedule/{{establishmentId}}/{{scheduleId}}/remove",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "music",
+                "schedule",
+                "{{establishmentId}}",
+                "{{scheduleId}}",
+                "remove"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Получить все расписания на объекте после удаления расписания",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test(\"Response is an array\", () => {",
+                  "    pm.expect(json).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "pm.test(\"Schedule list is empty after removal\", () => {",
+                  "    pm.expect(json.length).to.equal(0);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/music/schedule/{{establishmentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "music",
+                "schedule",
+                "{{establishmentId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "E2E_END",
+      "item": [
+        {
+          "name": "Удалить плейлист",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200))"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"id\": {{playlistId}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/music/playlist/delete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "music",
+                "playlist",
+                "delete"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Получить информацию об объекте после удаления плейлиста",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "",
+                  "const json = pm.response.json();",
+                  "const subscription = json.subscriptionInfo;",
+                  "",
+                  "pm.test(\"Playlists should be empty array\", () => {",
+                  "    pm.expect(subscription).to.have.property(\"playlists\").that.is.an(\"array\");",
+                  "    pm.expect(subscription.playlists).to.have.length(0);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/establishment/{{userId}}/{{establishmentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "establishment",
+                "{{userId}}",
+                "{{establishmentId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Удалить объект",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200))"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/establishment/{{userId}}/{{establishmentId}}/delete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "establishment",
+                "{{userId}}",
+                "{{establishmentId}}",
+                "delete"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Получить список объектов пользователя",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response is an array\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.be.an(\"array\");",
+                  "    pm.expect(json.length).to.be.eql(0);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/establishment/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "establishment",
+                "{{userId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Удалить организацию",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"id\": {{organizationId}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/legal-info/{{userId}}/ip/delete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "legal-info",
+                "{{userId}}",
+                "ip",
+                "delete"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Очистка переменных окружения",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Cleanup collection variables\", () => {",
+                  "    pm.collectionVariables.clear();",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "actuator",
+                "health"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          "pm.collectionVariables.set(\"phone\", \"74444444444\")",
+          "pm.collectionVariables.set(\"baseUrl\", \"localhost:8080\")"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "phone",
+      "value": ""
+    },
+    {
+      "key": "baseUrl",
+      "value": ""
+    }
+  ]
+}

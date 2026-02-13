@@ -1,0 +1,30 @@
+stages:
+  - deploy
+
+deploy-main:
+  stage: deploy
+  environment: prod
+  script:
+    - cd ~/pusk-back-main
+    - git pull --rebase origin $CI_COMMIT_REF_NAME
+    - cp ${PROD_ENV_FILE} .env
+    - docker compose pull
+    - docker compose up -d --build
+  only:
+    - main
+  tags:
+    - pusk-main-ssh
+
+deploy-test:
+  stage: deploy
+  environment: test
+  script:
+    - cd ~/pusk-back-test
+    - git pull --rebase origin $CI_COMMIT_REF_NAME
+    - cp ${TEST_ENV_FILE} .env
+    - docker compose pull
+    - docker compose up -d --build
+  only:
+    - test
+  tags:
+    - pusk-main-ssh
